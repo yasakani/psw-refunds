@@ -1,0 +1,67 @@
+version: '3'
+
+services:
+
+  api:
+    build: 
+      context: ./docker/api
+      dockerfile: Dockerfile
+    image: psw-refunds-api
+    container_name: psw-refunds-api
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: PSW_REFUNDS_API
+      SERVICE_TAGS: DEVELOPMENT
+    working_dir: /app
+    ports:
+      - "80:80"
+    volumes:
+      - ./psw-refunds-api:/app
+      - ./docker/api/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - psw-refunds-network
+    
+  cms:
+    build:
+      context: ./docker/cms
+      dockerfile: Dockerfile
+    image: psw-refunds-cms
+    container_name: psw-refunds-cms
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: PSW_REFUNDS_CMS
+      SERVICE_TAGS: DEVELOPMENT
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./psw-refunds-cms:/app
+    networks:
+      - psw-refunds-network
+    
+  db:
+    image: mysql:5.7
+    container_name: psw-refunds-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'psw_refunds'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - psw-refunds-data:/var/lib/mysql
+    networks:
+      - psw-refunds-network
+
+networks:
+  psw-refunds-network:
+    driver: bridge
+
+volumes:
+  psw-refunds-data:
